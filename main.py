@@ -44,12 +44,13 @@ commands = {
 }
 
 rulesArray = [
-    "No Shit Posting",
-    "No Hate Words Allowed",
-    "No Form of Advertisement Is Allowed",
-    "No Spamming",
-    "Stay On topic",
-    'No meta question e.g "Can i ask a question?"',
+    "no shit posting",
+    "no hate words allowed",
+    "no form of advertisement is allowed",
+    "no spamming",
+    "stay on topic",
+    'no meta question e.g "Can i ask a question?"',
+    "no promotions allowed"
 ]
 
 
@@ -107,6 +108,8 @@ def main():
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("rules", rules))
+
     # runs every two hours
     job_queue = JobQueue()
     job_queue.run_repeating(callback_minute, interval=60, first=10)
