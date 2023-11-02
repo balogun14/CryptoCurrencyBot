@@ -57,7 +57,17 @@ async def get_post_every_two_hours(context: ContextTypes.DEFAULT_TYPE):
 async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id='@examplechannel', text='One message every minute')
 
+async def rules(context:ContextTypes.DEFAULT_TYPE):
+    pass
 
+async def news(context:ContextTypes.DEFAULT_TYPE):
+    pass
+
+async def delete(context:ContextTypes.DEFAULT_TYPE):
+    pass
+
+async def get_stockprice(context:ContextTypes.DEFAULT_TYPE, message):
+    pass
 
 def main():
     """Run the bot."""
