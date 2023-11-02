@@ -58,15 +58,15 @@ rulesArray = [
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
-    await update.message.reply_text("Hi!")
+    await update.message.reply_text("Hi!") # type: ignore
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.message.reply_text("List Of commands Available")
+    await update.message.reply_text("List Of commands Available") # type: ignore
     for key in commands:
         text = "/" + key + ": " + commands[key]
-        await update.message.reply_text(text)
+        await update.message.reply_text(text) # type: ignore
 
 
 async def get_post_every_two_hours(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -85,7 +85,7 @@ async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     for i in range(0, len(rulesArray)):
         rulesText = convert_first_letter_of_each_word_to_capital(rulesArray[i])
-        await update.message.reply_text(rulesText)
+        await update.message.reply_text(rulesText) # type: ignore
 
 
 async def news(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -103,7 +103,7 @@ async def get_stockprice(context: ContextTypes.DEFAULT_TYPE, message) -> None:
 def main():
     """Run the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token(BOT_TOKEN).build()
+    application = Application.builder().token(BOT_TOKEN).build() # type: ignore
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
