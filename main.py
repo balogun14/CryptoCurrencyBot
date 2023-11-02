@@ -17,10 +17,11 @@ bot.
 import logging
 import os
 
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes,JobQueue
+from telegram import Message, Update
+from telegram.ext import Application, CommandHandler, ContextTypes, JobQueue
 
 from scrapper import scrapper
+from functions import convert_first_letter_of_each_word_to_capital
 
 # Enable logging
 logging.basicConfig(
@@ -33,6 +34,24 @@ logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
+# bot list of commands
+commands = {
+    "start": "starts the bot",
+    "news": "Gets the current news from the stock market",
+    "price": "Gets the price of the stock asked",
+    "rules": "reminds you of the channel rules",
+    "delete": "delete the message that violates group rules",
+}
+
+rulesArray = [
+    "No Shit Posting",
+    "No Hate Words Allowed",
+    "No Form of Advertisement Is Allowed",
+    "No Spamming",
+    "Stay On topic",
+    'No meta question e.g "Can i ask a question?"',
+]
+
 
 # Define a few command handlers. These usually take the two arguments update and
 # context.
@@ -43,31 +62,42 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.message.reply_text(
-        "To start bot run /start to get the current crypto price type /price"
-    )
+    await update.message.reply_text("List Of commands Available")
+    for key in commands:
+        text = "/" + key + ": " + commands[key]
+        await update.message.reply_text(text)
 
 
-async def get_post_every_two_hours(context: ContextTypes.DEFAULT_TYPE):
+async def get_post_every_two_hours(context: ContextTypes.DEFAULT_TYPE) -> None:
     post = scrapper()
     job = context.job
     for i in range(0, len(post)):
-        await context.bot.send_message(job.chat_id, text=post[i]) # type: ignore
+        await context.bot.send_message(job.chat_id, text=post[i])  # type: ignore
+
 
 async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id='@examplechannel', text='One message every minute')
+    await context.bot.send_message(
+        chat_id="@examplechannel", text="One message every minute"
+    )
 
-async def rules(context:ContextTypes.DEFAULT_TYPE):
+
+async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    for i in range(0, len(rulesArray)):
+        rulesText = convert_first_letter_of_each_word_to_capital(rulesArray[i])
+        await update.message.reply_text(rulesText)
+
+
+async def news(context: ContextTypes.DEFAULT_TYPE) -> None:
     pass
 
-async def news(context:ContextTypes.DEFAULT_TYPE):
+
+async def delete(context: ContextTypes.DEFAULT_TYPE) -> None:
     pass
 
-async def delete(context:ContextTypes.DEFAULT_TYPE):
+
+async def get_stockprice(context: ContextTypes.DEFAULT_TYPE, message) -> None:
     pass
 
-async def get_stockprice(context:ContextTypes.DEFAULT_TYPE, message):
-    pass
 
 def main():
     """Run the bot."""
@@ -77,7 +107,7 @@ def main():
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    # runs every two hours 
+    # runs every two hours
     job_queue = JobQueue()
     job_queue.run_repeating(callback_minute, interval=60, first=10)
     # Run the bot until the user presses Ctrl-C
