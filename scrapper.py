@@ -14,7 +14,7 @@ websites = [
 
 def scrapper():
     """
-    This crpes the most recent post
+    This scrapes the most recent post
     """
     site = websites[0]
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -23,15 +23,18 @@ def scrapper():
     soup = BeautifulSoup(page, features="lxml")
 
     articles = soup.find_all("div", attrs={"class": "my-4"})
+    article_pic = soup.find("div", attrs={"class": "float-left post-thumbnail"})
     recent_post = articles[1]  # Gets the first article
     title = recent_post.header.h2.a
     author = soup.find("span", attrs={"class": "font-weight-bold"})
     post_body = soup.find("div", attrs={"class": "post-body"})
     post.append(title.text)
-    post.append(author.text)
-    post.append(post_body.text)
+    post.append(article_pic.img.get("src")) # type:ignore
+    post.append(author.text)  # type:ignore
+    post.append(post_body.text)  # type:ignore
     return post
 
+scrapper()
 
 # length = len(post_body.text)
 

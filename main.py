@@ -17,7 +17,7 @@ bot.
 import logging
 import os
 
-from telegram import Message, Update
+from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, JobQueue
 
 from scrapper import scrapper
@@ -50,7 +50,7 @@ rulesArray = [
     "no spamming",
     "stay on topic",
     'no meta question e.g "Can i ask a question?"',
-    "no promotions allowed"
+    "no promotions allowed",
 ]
 
 
@@ -58,15 +58,15 @@ rulesArray = [
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
-    await update.message.reply_text("Hi!") # type: ignore
+    await update.message.reply_text("Hi!")  # type: ignore
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.message.reply_text("List Of commands Available") # type: ignore
+    await update.message.reply_text("List Of commands Available")  # type: ignore
     for key in commands:
         text = "/" + key + ": " + commands[key]
-        await update.message.reply_text(text) # type: ignore
+        await update.message.reply_text(text)  # type: ignore
 
 
 async def get_post_every_two_hours(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -85,11 +85,12 @@ async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     for i in range(0, len(rulesArray)):
         rulesText = convert_first_letter_of_each_word_to_capital(rulesArray[i])
-        await update.message.reply_text(rulesText) # type: ignore
+        await update.message.reply_text(rulesText)  # type: ignore
 
 
-async def news(context: ContextTypes.DEFAULT_TYPE) -> None:
-    pass
+async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    news = scrapper()
+    await update.message.reply_text(f"<b>{news[0]}</b> \n{news[1]}\nAuthor: {news[2]}\n{news[3]}", parse_mode="Html")  # type:ignore
 
 
 async def delete(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -103,12 +104,13 @@ async def get_stockprice(context: ContextTypes.DEFAULT_TYPE, message) -> None:
 def main():
     """Run the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token(BOT_TOKEN).build() # type: ignore
+    application = Application.builder().token(BOT_TOKEN).build()  # type: ignore
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("rules", rules))
+    application.add_handler(CommandHandler("news", news))
 
     # runs every two hours
     job_queue = JobQueue()
