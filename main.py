@@ -16,9 +16,12 @@ bot.
 """
 import logging
 import os
+import http
 
-from telegram import Update, Chat
-from telegram.ext import Application, CommandHandler, ContextTypes, JobQueue
+from flask import Flask, request
+from werkzeug.wrappers import Response
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 from scrapper import scrapper
 from functions import cfl
@@ -75,7 +78,7 @@ async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE):
     news_fetched = scrapper()
     chat_id = context._chat_id
     await context.bot.send_message(
-        chat_id=chat_id, # type: ignore
+        chat_id=chat_id,  # type: ignore
         text=f"<b>{news_fetched[0]}</b> \n{news_fetched[1]}\nAuthor: {news_fetched[2]}\n{news_fetched[3]}",
         parse_mode="Html",
     )
@@ -88,9 +91,9 @@ async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     news = scrapper()
-    await update.message.reply_text( # type:ignore
+    await update.message.reply_text(  # type:ignore
         f"<b>{news[0]}</b> \n{news[1]}\nAuthor: {news[2]}\n{news[3]}", parse_mode="Html"
-    )  
+    )
 
 
 async def delete(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -114,6 +117,14 @@ def main():
     # runs every two hours
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
+
+
+app = Flask(__name__)
+
+
+@app.post("/")
+def index():
+    return "", http.HTTPStatus.NO_CONTENT
 
 
 if __name__ == "__main__":
