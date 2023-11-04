@@ -17,7 +17,7 @@ bot.
 import logging
 import os
 
-from telegram import Update
+from telegram import Update, Chat
 from telegram.ext import Application, CommandHandler, ContextTypes, JobQueue
 
 from scrapper import scrapper
@@ -58,6 +58,8 @@ rulesArray = [
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
+    chat_id = update.message.chat_id  # type: ignore
+    context.job_queue.run_repeating(fetch_news_every_2_hrs, interval=2 * 60 * 60, first=0, chat_id=chat_id)  # type: ignore
     await update.message.reply_text("Hi!")  # type: ignore
 
 
@@ -69,27 +71,27 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(text)  # type: ignore
 
 
-async def get_post_every_two_hours(context: ContextTypes.DEFAULT_TYPE) -> None:
-    post = scrapper()
-    job = context.job
-    for i in range(0, len(post)):
-        await context.bot.send_message(job.chat_id, text=post[i])  # type: ignore
 
-
-async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
+async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE):
+    news_fetched = scrapper()
+    chat_id = context._chat_id
     await context.bot.send_message(
-        chat_id="@examplechannel", text="One message every minute"
+        chat_id=chat_id, # type: ignore
+        text=f"<b>{news_fetched[0]}</b> \n{news_fetched[1]}\nAuthor: {news_fetched[2]}\n{news_fetched[3]}",
+        parse_mode="Html",
     )
 
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = f"<b>Rules</b>\n1.{cfl(rulesArray[0])}\n2.{cfl(rulesArray[1])}\n3.{cfl(rulesArray[2])}\n4.{cfl(rulesArray[3])}\n5.{cfl(rulesArray[4])}\n6.{cfl(rulesArray[5])}\n{cfl(rulesArray[6])}"
-    await update.message.reply_text(message,parse_mode="Html")  # type: ignore
+    await update.message.reply_text(message, parse_mode="Html")  # type: ignore
 
 
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     news = scrapper()
-    await update.message.reply_text(f"<b>{news[0]}</b> \n{news[1]}\nAuthor: {news[2]}\n{news[3]}", parse_mode="Html")  # type:ignore
+    await update.message.reply_text(
+        f"<b>{news[0]}</b> \n{news[1]}\nAuthor: {news[2]}\n{news[3]}", parse_mode="Html"
+    )  # type:ignore
 
 
 async def delete(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -110,10 +112,7 @@ def main():
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("rules", rules))
     application.add_handler(CommandHandler("news", news))
-
     # runs every two hours
-    job_queue = JobQueue()
-    job_queue.run_repeating(callback_minute, interval=60, first=10)
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
 
