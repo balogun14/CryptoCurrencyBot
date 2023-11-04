@@ -71,7 +71,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(text)  # type: ignore
 
 
-
 async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE):
     news_fetched = scrapper()
     chat_id = context._chat_id
@@ -89,9 +88,9 @@ async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     news = scrapper()
-    await update.message.reply_text(
+    await update.message.reply_text( # type:ignore
         f"<b>{news[0]}</b> \n{news[1]}\nAuthor: {news[2]}\n{news[3]}", parse_mode="Html"
-    )  # type:ignore
+    )  
 
 
 async def delete(context: ContextTypes.DEFAULT_TYPE) -> None:
