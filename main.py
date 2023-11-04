@@ -21,7 +21,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, JobQueue
 
 from scrapper import scrapper
-from functions import convert_first_letter_of_each_word_to_capital
+from functions import cfl
 
 # Enable logging
 logging.basicConfig(
@@ -83,9 +83,8 @@ async def callback_minute(context: ContextTypes.DEFAULT_TYPE):
 
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    for i in range(0, len(rulesArray)):
-        rulesText = convert_first_letter_of_each_word_to_capital(rulesArray[i])
-        await update.message.reply_text(rulesText)  # type: ignore
+    message = f"1.{cfl(rulesArray[0])}\n2.{cfl(rulesArray[1])}\n3.{cfl(rulesArray[2])}\n4.{cfl(rulesArray[3])}\n5.{cfl(rulesArray[4])}\n6.{cfl(rulesArray[5])}\n{cfl(rulesArray[6])}"
+    await update.message.reply_text(message)  # type: ignore
 
 
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

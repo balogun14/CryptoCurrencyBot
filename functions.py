@@ -1,4 +1,4 @@
-def convert_first_letter_of_each_word_to_capital(word):
+def cfl(word):
     """
     This converts the first letter ofeach word to a capital letter
     """
