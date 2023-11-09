@@ -14,15 +14,14 @@ Basic inline bot example. Applies different text transformations.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
+from email.policy import default
 import logging
 import os
-import http
-
-from flask import Flask, request
-from werkzeug.wrappers import Response
+from telegram import Bot, Chat
+from flask import Flask
 from telegram import Update
+import telegram
 from telegram.ext import Application, CommandHandler, ContextTypes
-
 from scrapper import scrapper
 from functions import cfl
 
@@ -57,6 +56,9 @@ rulesArray = [
 ]
 
 
+app = Flask(__name__)
+
+bot = Bot(token=BOT_TOKEN) # type: ignore
 # Define a few command handlers. These usually take the two arguments update and
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -92,7 +94,7 @@ async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     news = scrapper()
     await update.message.reply_text(  # type:ignore
-        f"<b>{news[0]}</b> \n{news[1]}\nAuthor: {news[2]}\n{news[3]}", parse_mode="Html"
+        f"<b>{news[0]}</b> \n<a href='{news[1]}'>Click To View Image</a>\nAuthor: {news[2]}\n{news[3]}", parse_mode="Html"
     )
 
 
@@ -119,13 +121,11 @@ def main():
     application.run_polling()
 
 
-app = Flask(__name__)
-
-
-@app.post("/")
+@app.route("/")
 def index():
-    return "", http.HTTPStatus.NO_CONTENT
-
+    return "Hello World Are you there"
 
 if __name__ == "__main__":
+    # app.run()
     main()
+

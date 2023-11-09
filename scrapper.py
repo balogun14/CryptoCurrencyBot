@@ -34,7 +34,6 @@ def scrapper():
     post.append(post_body.text)  # type:ignore
     return post
 
-scrapper()
 
 # length = len(post_body.text)
 
