@@ -14,13 +14,11 @@ Basic inline bot example. Applies different text transformations.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
-from email.policy import default
 import logging
 import os
-from telegram import Bot, Chat
+from telegram import Bot, InlineKeyboardButton
 from flask import Flask
 from telegram import Update
-import telegram
 from telegram.ext import Application, CommandHandler, ContextTypes
 from scrapper import scrapper
 from functions import cfl
@@ -103,7 +101,10 @@ async def delete(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def get_stockprice(context: ContextTypes.DEFAULT_TYPE, message) -> None:
-    pass
+    keyboard = [
+        InlineKeyboardButton("Option 1", callback_data="1"),
+        InlineKeyboardButton("Option 2", callback_data="2"),
+    ],
 
 
 def main():
