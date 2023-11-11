@@ -1,3 +1,5 @@
+from re import I
+import requests
 def cfl(word):
     """
     This converts the first letter ofeach word to a capital letter
@@ -14,3 +16,9 @@ def cfl(word):
     words_joined = " ".join(joined_word_array)
     return words_joined
 
+async def image_handler(image:str):
+    response = requests.get(image)
+    file_name = 'image.jpeg'
+    with open(file_name, "wb") as file:
+        file.write(response.content)
+    return file_name

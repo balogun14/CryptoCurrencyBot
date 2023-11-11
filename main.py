@@ -17,11 +17,11 @@ bot.
 import logging
 import os
 from telegram import Bot, InlineKeyboardButton
-from flask import Flask
 from telegram import Update
+import telegram
 from telegram.ext import Application, CommandHandler, ContextTypes
 from scrapper import scrapper
-from functions import cfl
+from functions import cfl, image_handler
 
 # Enable logging
 logging.basicConfig(
@@ -54,9 +54,9 @@ rulesArray = [
 ]
 
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
-bot = Bot(token=BOT_TOKEN) # type: ignore
+# bot = Bot(token=BOT_TOKEN) # type: ignore
 # Define a few command handlers. These usually take the two arguments update and
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -74,7 +74,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text(text)  # type: ignore
 
 
-async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE):
+async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE) -> None:
     news_fetched = scrapper()
     chat_id = context._chat_id
     await context.bot.send_message(
@@ -88,12 +88,19 @@ async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = f"<b>Rules</b>\n1.{cfl(rulesArray[0])}\n2.{cfl(rulesArray[1])}\n3.{cfl(rulesArray[2])}\n4.{cfl(rulesArray[3])}\n5.{cfl(rulesArray[4])}\n6.{cfl(rulesArray[5])}\n{cfl(rulesArray[6])}"
     await update.message.reply_text(message, parse_mode="Html")  # type: ignore
 
+bot = Bot(str(BOT_TOKEN))
 
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     news = scrapper()
-    await update.message.reply_text(  # type:ignore
-        f"<b>{news[0]}</b> \n<a href='{news[1]}'>Click To View Image</a>\nAuthor: {news[2]}\n{news[3]}", parse_mode="Html"
-    )
+    await update.effective_chat.send_action(action=telegram.constants.ChatAction.TYPING) # type:ignore
+    # await update.message.reply_text(  # type:ignore
+    #     f"<b>{news[0]}</b> \n<a href='{news[1]}'>Click To View Image</a>\nAuthor: {news[2]}\n{news[3][:300]}", parse_mode="Html"
+    # )
+    text_message = f"<b>{news[0]}</b> \nAuthor: {news[2]}\n{news[3][:300]}"
+    file_name = news[1]
+    photo = await image_handler(file_name)
+    await update.effective_chat.send_photo(photo=open(photo,'rb'),caption=text_message,parse_mode="Html") # type:ignore
+    os.remove(photo)    #Garbage collector
 
 
 async def delete(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -122,9 +129,9 @@ def main():
     application.run_polling()
 
 
-@app.route("/")
-def index():
-    return "Hello World Are you there"
+# @app.route("/")
+# def index():
+#     return "Hello World Are you there"
 
 if __name__ == "__main__":
     # app.run()

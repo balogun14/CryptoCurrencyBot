@@ -24,7 +24,7 @@ def scrapper():
 
     articles = soup.find_all("div", attrs={"class": "my-4"})
     article_pic = soup.find("div", attrs={"class": "float-left post-thumbnail"})
-    recent_post = articles[1]  # Gets the first article
+    recent_post = articles[0]  # Gets the first article
     title = recent_post.header.h2.a
     author = soup.find("span", attrs={"class": "font-weight-bold"})
     post_body = soup.find("div", attrs={"class": "post-body"})
