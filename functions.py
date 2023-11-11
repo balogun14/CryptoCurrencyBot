@@ -16,6 +16,9 @@ def cfl(word):
     return words_joined
 
 async def image_handler(image:str):
+    """
+    This gets the images
+    """
     response = requests.get(image)
     file_name = 'image.jpeg'
     with open(file_name, "wb") as file:

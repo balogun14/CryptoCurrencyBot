@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument
-# This program is dedicated to the public domain under the CC0 license.
 
 """
-Don't forget to enable inline mode with @BotFather
-
 First, a few handler functions are defined. Then, those functions are passed to
 the Application and registered at their respective places.
 Then, the bot is started and runs until we press Ctrl-C on the command line.
-
 Usage:
-Basic inline bot example. Applies different text transformations.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
@@ -20,7 +15,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatAction
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from scrapper import news_scrapper, price_list_scrapper
-from functions import cfl, image_handler
+from functions import image_handler
 
 # Enable logging
 logging.basicConfig(
@@ -91,8 +86,6 @@ async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(message, parse_mode="Html")  # type: ignore
 
 
-
-
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     news = news_scrapper()
     await update.effective_chat.send_action(  # type:ignore
@@ -106,10 +99,8 @@ async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     os.remove(photo)  # Garbage collector
 
-
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     pass
-
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses the CallbackQuery and updates the message text."""
@@ -121,14 +112,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await query.edit_message_text(text=f"Selected option: {query.data}")  # type:ignore
 
-
 async def get_priceList(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     res = price_list_scrapper()
     await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
     string_map = '\n'.join([f'{key}: {value}' for key,value in res.items()])
     await update.message.reply_text(text="Current crypto price list for top 100") # type:ignore
     await update.message.reply_text(text=string_map) # type:ignore
-
 
 async def get_stockprice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
