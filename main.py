@@ -16,11 +16,10 @@ bot.
 """
 import logging
 import os
-from telegram import Bot, InlineKeyboardButton
-from telegram import Update
-import telegram
-from telegram.ext import Application, CommandHandler, ContextTypes
-from scrapper import scrapper
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.constants import ChatAction
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from scrapper import news_scrapper, price_list_scrapper
 from functions import cfl, image_handler
 
 # Enable logging
@@ -36,46 +35,48 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
 # bot list of commands
 commands = {
-    "start": "starts the bot",
-    "news": "Gets the current news from the stock market",
-    "price": "Gets the price of the stock asked",
-    "rules": "reminds you of the channel rules",
-    "delete": "delete the message that violates group rules",
+    "/start": "starts the bot",
+    "/news": "Gets the current news from the stock market",
+    "/price": "Gets the price of the stock asked",
+    "/rules": "reminds you of the channel rules",
+    "/delete": "delete the message that violates group rules",
 }
 
 rulesArray = [
-    "no shit posting",
-    "no hate words allowed",
-    "no form of advertisement is allowed",
-    "no spamming",
-    "stay on topic",
-    'no meta question e.g "Can i ask a question?"',
-    "no promotions allowed",
+    "No shit posting",
+    "No hate words allowed",
+    "No form of advertisement is allowed",
+    "No spamming",
+    "Stay on topic",
+    'No meta question e.g "Can i ask a question?"',
+    "No promotions allowed",
 ]
 
 
 # app = Flask(__name__)
+
 
 # bot = Bot(token=BOT_TOKEN) # type: ignore
 # Define a few command handlers. These usually take the two arguments update and
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
+    await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
     chat_id = update.message.chat_id  # type: ignore
     context.job_queue.run_repeating(fetch_news_every_2_hrs, interval=2 * 60 * 60, first=0, chat_id=chat_id)  # type: ignore
-    await update.message.reply_text("Hi!")  # type: ignore
+    await update.message.reply_text("I will send news every two hours")  # type: ignore
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
+    await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
     await update.message.reply_text("List Of commands Available")  # type: ignore
-    for key in commands:
-        text = "/" + key + ": " + commands[key]
-        await update.message.reply_text(text)  # type: ignore
+    string_map = '\n'.join([f'{key}: {value}' for key,value in commands.items()])
+    await update.message.reply_text(string_map)  # type: ignore
 
 
 async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE) -> None:
-    news_fetched = scrapper()
+    news_fetched = news_scrapper()
     chat_id = context._chat_id
     await context.bot.send_message(
         chat_id=chat_id,  # type: ignore
@@ -85,33 +86,62 @@ async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    message = f"<b>Rules</b>\n1.{cfl(rulesArray[0])}\n2.{cfl(rulesArray[1])}\n3.{cfl(rulesArray[2])}\n4.{cfl(rulesArray[3])}\n5.{cfl(rulesArray[4])}\n6.{cfl(rulesArray[5])}\n{cfl(rulesArray[6])}"
+    await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
+    message = '\n'.join(rulesArray)
     await update.message.reply_text(message, parse_mode="Html")  # type: ignore
 
-bot = Bot(str(BOT_TOKEN))
+
+
 
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    news = scrapper()
-    await update.effective_chat.send_action(action=telegram.constants.ChatAction.TYPING) # type:ignore
-    # await update.message.reply_text(  # type:ignore
-    #     f"<b>{news[0]}</b> \n<a href='{news[1]}'>Click To View Image</a>\nAuthor: {news[2]}\n{news[3][:300]}", parse_mode="Html"
-    # )
+    news = news_scrapper()
+    await update.effective_chat.send_action(  # type:ignore
+        action=ChatAction.TYPING
+    )
     text_message = f"<b>{news[0]}</b> \nAuthor: {news[2]}\n{news[3][:300]}"
     file_name = news[1]
     photo = await image_handler(file_name)
-    await update.effective_chat.send_photo(photo=open(photo,'rb'),caption=text_message,parse_mode="Html") # type:ignore
-    os.remove(photo)    #Garbage collector
+    await update.effective_chat.send_photo(  # type:ignore
+        photo=open(photo, "rb"), caption=text_message, parse_mode="Html"
+    )
+    os.remove(photo)  # Garbage collector
 
 
-async def delete(context: ContextTypes.DEFAULT_TYPE) -> None:
+async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     pass
 
 
-async def get_stockprice(context: ContextTypes.DEFAULT_TYPE, message) -> None:
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    await query.answer()  # type:ignore
+
+    await query.edit_message_text(text=f"Selected option: {query.data}")  # type:ignore
+
+
+async def get_priceList(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    res = price_list_scrapper()
+    await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
+    string_map = '\n'.join([f'{key}: {value}' for key,value in res.items()])
+    await update.message.reply_text(text="Current crypto price list for top 100") # type:ignore
+    await update.message.reply_text(text=string_map) # type:ignore
+
+
+async def get_stockprice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
-        InlineKeyboardButton("Option 1", callback_data="1"),
-        InlineKeyboardButton("Option 2", callback_data="2"),
-    ],
+        [
+            InlineKeyboardButton("Option 1", callback_data="1"),
+            InlineKeyboardButton("Option 2", callback_data="2"),
+        ],
+        [InlineKeyboardButton("Option 3", callback_data="3")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(  # type:ignore
+        "Please choose:", reply_markup=reply_markup
+    )  # type:ignore
 
 
 def main():
@@ -124,6 +154,10 @@ def main():
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("rules", rules))
     application.add_handler(CommandHandler("news", news))
+    application.add_handler(CommandHandler("price", get_stockprice))
+    application.add_handler(CommandHandler("pricelist", get_priceList))
+    application.add_handler(CommandHandler("delete", delete))
+    application.add_handler(CallbackQueryHandler(button))
     # runs every two hours
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
@@ -136,4 +170,3 @@ def main():
 if __name__ == "__main__":
     # app.run()
     main()
-
