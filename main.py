@@ -13,7 +13,7 @@ import logging
 import os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatAction
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes
 from scrapper import news_scrapper, price_list_scrapper
 from functions import image_handler
 
@@ -56,7 +56,7 @@ rulesArray = [
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
-    await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
+    await update.effective_chat.send_action(action=ChatAction.TYPING)  # type: ignore
     chat_id = update.message.chat_id  # type: ignore
     context.job_queue.run_repeating(fetch_news_every_2_hrs, interval=2 * 60 * 60, first=0, chat_id=chat_id)  # type: ignore
     await update.message.reply_text("I will send news every two hours")  # type: ignore
@@ -64,43 +64,51 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
+    await update.effective_chat.send_action(action=ChatAction.TYPING)  # type: ignore
     await update.message.reply_text("List Of commands Available")  # type: ignore
-    string_map = '\n'.join([f'{key}: {value}' for key,value in commands.items()])
+    string_map = "\n".join([f"{key}: {value}" for key, value in commands.items()])
     await update.message.reply_text(string_map)  # type: ignore
 
 
 async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE) -> None:
-    news_fetched = news_scrapper()
-    chat_id = context._chat_id
-    await context.bot.send_message(
-        chat_id=chat_id,  # type: ignore
-        text=f"<b>{news_fetched[0]}</b> \n{news_fetched[1]}\nAuthor: {news_fetched[2]}\n{news_fetched[3]}",
-        parse_mode="Html",
+    """daemon function that fetches news every two hours."""
+    news_content = news_scrapper()
+    text_message: str = f"<b>{news_content[0]}</b>\n{news_content[2]}"
+    file_name: str = news_content[1]
+    photo: str = await image_handler(file_name)
+    await context.bot.send_photo(  # type:ignore
+        photo=open(photo, "rb"), caption=text_message, parse_mode="Html"
     )
+    os.remove(photo)  # Garbage collector
+    news_content.clear()  # Garbage collector
 
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
-    message = '\n'.join(rulesArray)
+    """Sends the rules when the command `/rules` is issued."""
+    await update.effective_chat.send_action(action=ChatAction.TYPING)  # type: ignore
+    message = "\n".join(rulesArray)
     await update.message.reply_text(message, parse_mode="Html")  # type: ignore
 
 
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    news = news_scrapper()
+    """Sends the recent news  when the command `/news` is issued."""
+    news_content = news_scrapper()
     await update.effective_chat.send_action(  # type:ignore
         action=ChatAction.TYPING
     )
-    text_message = f"<b>{news[0]}</b> \nAuthor: {news[2]}\n{news[3][:300]}"
-    file_name = news[1]
-    photo = await image_handler(file_name)
+    text_message: str = f"<b>{news_content[0]}</b>\n{news_content[2]}"
+    file_name: str = news_content[1]
+    photo: str = await image_handler(file_name)
     await update.effective_chat.send_photo(  # type:ignore
         photo=open(photo, "rb"), caption=text_message, parse_mode="Html"
     )
-    os.remove(photo)  # Garbage collector
+    os.remove(photo)  # Garbage collector: This removes the downloaded photo
+    news_content.clear()  # Garbage collector :This clears the content of the list for new entries
+
 
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     pass
+
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses the CallbackQuery and updates the message text."""
@@ -112,12 +120,16 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await query.edit_message_text(text=f"Selected option: {query.data}")  # type:ignore
 
+
 async def get_priceList(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     res = price_list_scrapper()
-    await update.effective_chat.send_action(action=ChatAction.TYPING ) # type: ignore
-    string_map = '\n'.join([f'{key}: {value}' for key,value in res.items()])
-    await update.message.reply_text(text="Current crypto price list for top 100") # type:ignore
-    await update.message.reply_text(text=string_map) # type:ignore
+    await update.effective_chat.send_action(action=ChatAction.TYPING)  # type: ignore
+    string_map = "\n".join([f"{key}: {value}" for key, value in res.items()])
+    await update.message.reply_text(  # type:ignore
+        text="Current crypto price list for top 100"
+    )  # type:ignore
+    await update.message.reply_text(text=string_map)  # type:ignore
+
 
 async def get_stockprice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
@@ -146,7 +158,7 @@ def main():
     application.add_handler(CommandHandler("price", get_stockprice))
     application.add_handler(CommandHandler("pricelist", get_priceList))
     application.add_handler(CommandHandler("delete", delete))
-    application.add_handler(CallbackQueryHandler(button))
+    # application.add_handler(CallbackQueryHandler(button))
     # runs every two hours
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
