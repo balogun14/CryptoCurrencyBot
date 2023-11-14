@@ -11,6 +11,7 @@ bot.
 """
 import logging
 import os
+from turtle import update
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatAction
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -77,7 +78,7 @@ async def fetch_news_every_2_hrs(context: ContextTypes.DEFAULT_TYPE) -> None:
     file_name: str = news_content[1]
     photo: str = await image_handler(file_name)
     await context.bot.send_photo(  # type:ignore
-        photo=open(photo, "rb"), caption=text_message, parse_mode="Html"
+        photo=open(photo, "rb"), caption=text_message, parse_mode="Html",chat_id=context._chat_id  # type:ignore
     )
     os.remove(photo)  # Garbage collector
     news_content.clear()  # Garbage collector
