@@ -159,15 +159,27 @@ async def greet_chat_members(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
 
 
-async def filter_non_admin_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message
+async def filter_non_admin_messages(update: Update):
+    """This filters messages and checks if not sent by an admin
+    Args:
+        update (Update): _description_
+        context (ContextTypes.DEFAULT_TYPE): _description_
 
+    Returns:
+        _type_: `True`
+    """    
+    message = update.message
     if not message.from_user.name == ChatMember.ADMINISTRATOR: #type:ignore
         return True
 
 
 async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Sends the recent news  when the command `/news` is issued."""
+    """
+    Sends the recent news  when the command `/news` is issued.
+    Args:
+        update (Update): _description_
+        context (ContextTypes.DEFAULT_TYPE): _description_
+    """    
     news_content = news_scrapper()
     await update.effective_chat.send_action(  # type:ignore
         action=ChatAction.TYPING
@@ -183,8 +195,14 @@ async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    pass
+    if filter_non_admin_messages:
+        replied_message  = update.effective_message.reply_to_message.message_id#type:ignore
+        await context.bot.delete_message(chat_id=context._chat_id,message_id=replied_message) #type:ignore
+    else:
+        await update.message.reply_text(text="Unauthorized Access You have to be an admin to use this",)
 
+async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    pass
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses the CallbackQuery and updates the message text."""
@@ -198,6 +216,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def get_priceList(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """This sends a list of stock price
+
+    Args:
+        update (Update): _description_
+        context (ContextTypes.DEFAULT_TYPE): _description_
+    """    
     res = price_list_scrapper()
     await update.effective_chat.send_action(action=ChatAction.TYPING)  # type: ignore
     string_map = "\n".join([f"{key}: {value}" for key, value in res.items()])
@@ -208,6 +232,12 @@ async def get_priceList(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def get_stockprice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """in progress
+
+    Args:
+        update (Update): _description_
+        context (ContextTypes.DEFAULT_TYPE): _description_
+    """    
     keyboard = [
         [
             InlineKeyboardButton("Option 1", callback_data="1"),
@@ -221,9 +251,7 @@ async def get_stockprice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )  # type:ignore
 
 
-async def ban_users_that_sends_link(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def ban_users_that_sends_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if filter_non_admin_messages:
         await update.effective_chat.ban_member(user_id=context._user_id)  # type:ignore
 
@@ -255,11 +283,6 @@ def main():
     # runs every two hours
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
-
-
-# @app.route("/")
-# def index():
-#     return "Hello World Are you there"
 
 if __name__ == "__main__":
     # app.run()
