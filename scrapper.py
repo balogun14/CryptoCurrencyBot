@@ -4,10 +4,8 @@ from urllib.request import Request, urlopen
 
 # Websites to scrape from
 websites = [
-    # "https://beincrypto.com/news",
     "https://www.coingecko.com/en/news",
     "https://www.coingecko.com/",
-    # "https://www.coindesk.com/feed",
 ]
 
 
@@ -58,4 +56,3 @@ def price_list_scrapper():
         prices.append(price.text.split())
     res = {names[i]: prices[i] for i in range(len(names))}
     return res
-    # print(len(prices))

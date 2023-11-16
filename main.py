@@ -51,7 +51,7 @@ commands = {
     "/price": "Gets the price of the stock asked",
     "/rules": "reminds you of the channel rules admin only",
     "/delete": "delete the message that violates group rules (admin only)",
-    "/ban!": "bans the user that violates group rules (admin only)",
+    "/ban": "bans the user that violates group rules (admin only)",
 }
 
 rulesArray = [
@@ -209,15 +209,15 @@ async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if filter_non_admin_messages is False:
         replied_message = (
-            update.effective_message.reply_to_message.message_id
+            update.effective_message.reply_to_message.message_id # type:ignore
         )  # type:ignore
         await context.bot.delete_message(
-            chat_id=context._chat_id, message_id=replied_message
+            chat_id=context._chat_id, message_id=replied_message # type: ignore
         )  # type:ignore
     else:
-        await update.message.reply_text(
+        await update.message.reply_text( # type:ignore
             text="Unauthorized Access You have to be an admin to use this"
-        )  # type:ignore
+        )  
 
 
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -294,7 +294,7 @@ def main():
     application.add_handler(CommandHandler("price", get_stockprice))
     application.add_handler(CommandHandler("pricelist", get_priceList))
     application.add_handler(CommandHandler("delete", delete))
-    application.add_handler(CommandHandler("ban!", ban))
+    application.add_handler(CommandHandler("ban", ban))
 
     application.add_handler(
         MessageHandler(
