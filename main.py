@@ -49,9 +49,9 @@ commands = {
     "/start": "starts the bot",
     "/news": "Gets the current news from the stock market",
     "/price": "Gets the price of the stock asked",
-    "/rules": "reminds you of the channel rules admin only",
-    "/delete": "delete the message that violates group rules (admin only)",
-    "/ban": "bans the user that violates group rules (admin only)",
+    "/rules": "reminds you of the channel rules",
+    "/delete": "delete the message that violates group rules (<b>admin only</b>)",
+    "/ban": "bans the user that violates group rules (<b>admin only</b>)",
 }
 
 rulesArray = [
@@ -157,8 +157,9 @@ async def greet_chat_members(
     member_name = update.chat_member.new_chat_member.user.mention_html()  # type:ignore
 
     if not was_member and is_member:
+        message = "\n".join(rulesArray)
         await update.effective_chat.send_message(  # type:ignore
-            f"{member_name} was added by {cause_name}. Welcome! to The Channel",
+            f"{member_name} was added by {cause_name}. Welcome! to The Channel\n Here are the rules hope you follow them to avoid getting banned {message}",
             parse_mode="Html",
         )
     elif was_member and not is_member:
