@@ -1,3 +1,5 @@
+import os
+from typing import List
 import requests
 def cfl(word):
     """
@@ -24,3 +26,11 @@ async def image_handler(image:str):
     with open(file_name, "wb") as file:
         file.write(response.content)
     return file_name
+
+
+def garbage_collector(list:List,photo):
+    """
+    This cleans up the resources after every run
+    """
+    os.remove(photo)  
+    list.clear()
